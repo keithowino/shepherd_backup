@@ -56,4 +56,21 @@ export const animeRepository = {
         if (!doc?.fetchedAt) return false;
         return Date.now() - new Date(doc.fetchedAt).getTime() < ttlMs;
     },
+
+    async isSeriesFresh(id, ttlMs) {
+        const doc = await Anime.findById(Number(id))
+            .select("seriesFetchedAt")
+            .lean();
+
+        if (!doc?.seriesFetchedAt) return false;
+
+        return Date.now() - new Date(doc.seriesFetchedAt).getTime() < ttlMs;
+    },
+
+    async markSeriesFetched(id, fetchedAt = new Date()) {
+        await Anime.updateOne(
+            { _id: Number(id) },
+            { $set: { seriesFetchedAt: fetchedAt } },
+        );
+    },
 };

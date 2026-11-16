@@ -37,7 +37,7 @@ const animeSchema = new mongoose.Schema(
             default: {},
         },
         sourceUpdatedAt: Date,                // Anikoto's updated_at
-        fetchedAt: { type: Date, index: true },
+        fetchedAt: { type: Date, index: true }, seriesFetchedAt: Date,
     },
     // { _id: false, timestamps: true },
     { timestamps: true },

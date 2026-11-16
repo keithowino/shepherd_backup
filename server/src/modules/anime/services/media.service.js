@@ -29,55 +29,120 @@ export const mediaService = {
         }
     },
 
+    // async getSeries(id) {
+    //     const fresh = await animeRepository.isFresh(
+    //         id,
+    //         env.anikoto.cacheTtlMs,
+    //     );
+
+    //     // Cache hit: serve from Mongo, no upstream call
+    //     if (fresh) {
+    //         const [anime, episodes] = await Promise.all([
+    //             animeRepository.findById(id),
+    //             episodeRepository.findByAnimeId(id),
+    //         ]);
+    //         if (anime) {
+    //             return { anime, episodes, cached: true };
+    //         }
+    //     }
+
+    //     // Cache miss: fetch, normalize, persist, return
+    //     try {
+    //         const json = await anikotoProvider.fetchSeries(id);
+    //         const fetchedAt = new Date();
+    //         const { anime, episodes } = json.data;
+
+    //         await animeRepository.upsertMany([anime], fetchedAt);
+    //         await episodeRepository.replaceForAnime(id, episodes, fetchedAt);
+
+    //         const [storedAnime, storedEpisodes] = await Promise.all([
+    //             animeRepository.findById(id),
+    //             episodeRepository.findByAnimeId(id),
+    //         ]);
+
+    //         return { anime: storedAnime, episodes: storedEpisodes, cached: false };
+    //     } catch (err) {
+    //         if (err instanceof AnikotoError) {
+    //             // Last-resort: stale cache beats a 502
+    //             const [anime, episodes] = await Promise.all([
+    //                 animeRepository.findById(id),
+    //                 episodeRepository.findByAnimeId(id),
+    //             ]);
+    //             if (anime) return { anime, episodes, cached: true, stale: true };
+
+    //             throw new AppError(
+    //                 err.status === HTTP_STATUS.TOO_MANY_REQUESTS
+    //                     ? "Rate limited by upstream anime API."
+    //                     : "Upstream anime API unavailable.",
+    //                 HTTP_STATUS.BAD_GATEWAY,
+    //                 ErrorCodes.BAD_GATEWAY,
+    //             );
+    //         }
+    //         throw err;
+    //     }
+    // },
     async getSeries(id) {
-        const fresh = await animeRepository.isFresh(
+        const fresh = await animeRepository.isSeriesFresh(
             id,
             env.anikoto.cacheTtlMs,
         );
 
-        // Cache hit: serve from Mongo, no upstream call
+        // Cache hit: serve the previously fetched series from MongoDB.
         if (fresh) {
             const [anime, episodes] = await Promise.all([
                 animeRepository.findById(id),
                 episodeRepository.findByAnimeId(id),
             ]);
+
             if (anime) {
                 return { anime, episodes, cached: true };
             }
         }
 
-        // Cache miss: fetch, normalize, persist, return
+        // Cache miss: fetch, normalize, persist, and return.
         try {
             const json = await anikotoProvider.fetchSeries(id);
+
             const fetchedAt = new Date();
             const { anime, episodes } = json.data;
 
             await animeRepository.upsertMany([anime], fetchedAt);
             await episodeRepository.replaceForAnime(id, episodes, fetchedAt);
 
+            // Mark the series as fresh only after both persistence operations succeed.
+            await animeRepository.markSeriesFetched(id, fetchedAt);
+
             const [storedAnime, storedEpisodes] = await Promise.all([
                 animeRepository.findById(id),
                 episodeRepository.findByAnimeId(id),
             ]);
 
-            return { anime: storedAnime, episodes: storedEpisodes, cached: false };
+            return {
+                anime: storedAnime,
+                episodes: storedEpisodes,
+                cached: false,
+            };
         } catch (err) {
             if (err instanceof AnikotoError) {
-                // Last-resort: stale cache beats a 502
+                // Last-resort: stale cache beats a 502.
                 const [anime, episodes] = await Promise.all([
                     animeRepository.findById(id),
                     episodeRepository.findByAnimeId(id),
                 ]);
-                if (anime) return { anime, episodes, cached: true, stale: true };
+
+                if (anime) {
+                    return { anime, episodes, cached: true, stale: true };
+                }
 
                 throw new AppError(
-                    err.status === HTTP_STATUS.TOO_MANY_REQUESTS
+                    err.status === 429
                         ? "Rate limited by upstream anime API."
                         : "Upstream anime API unavailable.",
-                    HTTP_STATUS.BAD_GATEWAY,
-                    ErrorCodes.BAD_GATEWAY,
+                    502,
+                    "UPSTREAM_ERROR",
                 );
             }
+
             throw err;
         }
     },
