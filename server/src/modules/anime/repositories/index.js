@@ -1,0 +1,1 @@
+export { animeRepository } from "./anime.repository.js"

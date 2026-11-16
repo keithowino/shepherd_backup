@@ -2,11 +2,27 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/app/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "traceWarnings": "nodemon --exec \"node --trace-warnings\" src/app/server.js",
+    "start": "node src/app/server.js",
+    "dev": "nodemon src/app/server.js",
+    "build": "echo 'No build step needed for server'",
+    "test": "node --test"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "Pickaxe & Shovel",
+  "license": "PROPRIETARY",
+  "type": "module",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "mongoose": "^9.12.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
 }
