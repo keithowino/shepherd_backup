@@ -13,6 +13,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Link } from "react-router-dom";
 
 const PER_PAGE = 20;
 
@@ -41,7 +42,7 @@ function getPageNumbers(currentPage, totalPages) {
     return pages;
 }
 
-export const AnimeGrid = ({ onSelect }) => {
+export const AnimeGrid = () => {
     const [page, setPage] = useState(1);
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -109,11 +110,10 @@ export const AnimeGrid = ({ onSelect }) => {
         <div className="space-y-8">
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
                 {result.items.map((anime) => (
-                    <AnimeCard
-                        key={anime.id}
+                    <Link key={anime.id} to={`shepherd/anime/${anime.id}`}>
+                        <AnimeCard
                         anime={anime}
-                        onClick={() => onSelect(anime.id)}
-                    />
+                    /></Link>
                 ))}
             </div>
 

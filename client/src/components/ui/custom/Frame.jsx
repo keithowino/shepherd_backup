@@ -3,7 +3,7 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 export const Frame = ({ src, title = "Anime Player" }) => {
     if (!src) return null;
     return (
-        <AspectRatio ratio={16 / 9} className="w-full rounded-lg overflow-hidden bg-muted">
+        <AspectRatio ratio={16 / 9} className="w-full">
             <iframe
                 src={src}
                 title={title}
