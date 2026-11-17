@@ -14,6 +14,7 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Link } from "react-router-dom";
+import NextAndPrevious from "./NextAndPrevious";
 
 const PER_PAGE = 20;
 
@@ -108,6 +109,13 @@ export const AnimeGrid = () => {
 
     return (
         <div className="space-y-8">
+            <NextAndPrevious 
+                handlePageChange={handlePageChange} 
+                page={page} 
+                pageNumbers={pageNumbers} 
+                totalPages={totalPages}
+            />
+
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
                 {result.items.map((anime) => (
                     <Link key={anime.id} to={`shepherd/anime/${anime.id}`}>
@@ -117,57 +125,13 @@ export const AnimeGrid = () => {
                 ))}
             </div>
 
-            <Pagination>
-                <PaginationContent>
-                    <PaginationItem>
-                        <PaginationPrevious
-                            href="#"
-                            aria-disabled={page === 1}
-                            className={
-                                page === 1
-                                    ? "pointer-events-none opacity-50"
-                                    : ""
-                            }
-                            onClick={(event) =>
-                                handlePageChange(event, page - 1)
-                            }
-                        />
-                    </PaginationItem>
-
-                    {pageNumbers.map((pageNumber, index) => (
-                        <PaginationItem key={`${pageNumber}-${index}`}>
-                            {pageNumber === "ellipsis" ? (
-                                <PaginationEllipsis />
-                            ) : (
-                                <PaginationLink
-                                    href="#"
-                                    isActive={pageNumber === page}
-                                    onClick={(event) =>
-                                        handlePageChange(event, pageNumber)
-                                    }
-                                >
-                                    {pageNumber}
-                                </PaginationLink>
-                            )}
-                        </PaginationItem>
-                    ))}
-
-                    <PaginationItem>
-                        <PaginationNext
-                            href="#"
-                            aria-disabled={page === totalPages}
-                            className={
-                                page === totalPages
-                                    ? "pointer-events-none opacity-50"
-                                    : ""
-                            }
-                            onClick={(event) =>
-                                handlePageChange(event, page + 1)
-                            }
-                        />
-                    </PaginationItem>
-                </PaginationContent>
-            </Pagination>
+            <NextAndPrevious 
+                handlePageChange={handlePageChange} 
+                page={page} 
+                pageNumbers={pageNumbers} 
+                totalPages={totalPages}
+            />
+            
         </div>
     );
 };
